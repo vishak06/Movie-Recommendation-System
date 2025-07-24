@@ -1,0 +1,21 @@
+body
+{
+    background-image: url('background.jpg');
+    background-attachment: fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.bg-red {
+    background-color: #e35d6a; /* Example value for blue-900 */
+}
+
+.card 
+{
+    transition: transform 0.3s ease-in-out;
+}
+
+.card:hover {
+    transform: scale(1.01);
+}
