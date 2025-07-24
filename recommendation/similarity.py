@@ -3,7 +3,7 @@ import difflib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-df = pd.read_csv('recommendation/static/recommendation/moviesdb.csv')
+df = pd.read_pickle('recommendation/static/recommendation/moviesdb.pkl')
 
 for col in ['title' ,'genres', 'overview', 'language', 'poster_path', 'release_date', 'vote_average', 'cast', 'director']:
     df[col] = df[col].fillna('')
