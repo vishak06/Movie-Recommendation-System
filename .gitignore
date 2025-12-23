@@ -14,6 +14,10 @@ db.sqlite3-journal
 media/
 staticfiles/
 
+# Large data files
+*.pkl
+preprocessed_data.pkl
+
 # Virtual environment
 venv/
 env/
