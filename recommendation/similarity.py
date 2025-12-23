@@ -7,10 +7,17 @@ import os
 preprocessed_path = 'recommendation/static/recommendation/preprocessed_data.pkl'
 
 if not os.path.exists(preprocessed_path):
-    raise FileNotFoundError(
-        f"Preprocessed data not found at {preprocessed_path}. "
-        "Please run 'python recommendation/preprocess_data.py' first."
-    )
+    print("Preprocessed data not found. Generating it now...")
+    try:
+        from .preprocess_data import preprocess_data
+        preprocess_data()
+        print("Preprocessing complete!")
+    except Exception as e:
+        raise FileNotFoundError(
+            f"Preprocessed data not found at {preprocessed_path}. "
+            f"Attempted to generate it but failed: {e}. "
+            "Please run 'python recommendation/preprocess_data.py' manually."
+        )
 
 with open(preprocessed_path, 'rb') as f:
     data = pickle.load(f)
