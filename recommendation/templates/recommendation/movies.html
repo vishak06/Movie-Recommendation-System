@@ -21,7 +21,7 @@
                     <div class="d-flex flex-wrap justify-content-center gap-3 mb-5">
                         <form action="{% url 'index' %}" method="POST" class="d-flex flex-wrap gap-3 justify-content-center">
                             {% csrf_token %}
-                            <input class="form-control form-control-lg" autofocus type="text" name="title" id="title" placeholder="Enter Movie Title" required>
+                            <input class="form-control form-control-lg" type="text" name="title" id="title" placeholder="Enter Movie Title" required>
                             <div class="d-flex align-items-center gap-2">
                                 <label for="number" class="form-label" style="color: #415a77; font-size: 20px;">Number of Recommendations : </label>
                                 <input type="number" class="form-control form-control-lg" name="number" id="number" value="10" min="1" max="50" style="width: 100px;">
