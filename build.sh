@@ -1,5 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Build script for deployment platforms (Render, Railway, etc.)
+
+set -o errexit
 
 echo "Installing dependencies..."
 pip install -r requirements.txt
