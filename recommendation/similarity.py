@@ -1,20 +1,21 @@
 import pandas as pd
 import difflib
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+import pickle
+import os
 
-df = pd.read_csv('recommendation/static/recommendation/moviesdb.csv')
+# Load preprocessed data
+preprocessed_path = 'recommendation/static/recommendation/preprocessed_data.pkl'
 
-for col in ['title' ,'genres', 'overview', 'language', 'poster_path', 'release_date', 'vote_average', 'cast', 'director']:
-    df[col] = df[col].fillna('')
+if not os.path.exists(preprocessed_path):
+    raise FileNotFoundError(
+        f"Preprocessed data not found at {preprocessed_path}. "
+        "Please run 'python recommendation/preprocess_data.py' first."
+    )
 
-combined = df['genres'] + ' ' + df['overview'] + ' ' + df['language'] + ' ' + df['cast'] + ' ' + df['director']
-
-vectorizer = TfidfVectorizer()
-
-feature_vectors = vectorizer.fit_transform(combined)
-
-similarity = cosine_similarity(feature_vectors)
+with open(preprocessed_path, 'rb') as f:
+    data = pickle.load(f)
+    df = data['df']
+    similarity = data['similarity']
 
 def movie_recommendation(movie_name, number=10):
     list_of_titles = [title.lower() for title in df['title'].tolist()]

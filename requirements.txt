@@ -2,3 +2,6 @@ Django>=4.0
 pandas
 numpy
 scikit-learn
+gunicorn
+whitenoise
+python-decouple
