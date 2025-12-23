@@ -33,12 +33,22 @@ def movie_recommendation(movie_name, number=10):
     
     close_match = find_close_match[0]
     movie_index = df[df['title'].str.lower() == close_match].index[0]
-    similarity_score = list(enumerate(similarity[movie_index]))
-    sorted_similar_movies = sorted(similarity_score, key=lambda x: x[1], reverse=True)
+    
+    # Get precomputed similar movies
+    if isinstance(similarity, list):
+        # Optimized format: list of (indices, scores) tuples
+        top_indices, top_scores = similarity[movie_index]
+        similarity_score = list(zip(top_indices, top_scores))
+    else:
+        # Legacy format: full similarity matrix
+        similarity_score = list(enumerate(similarity[movie_index]))
+        similarity_score = sorted(similarity_score, key=lambda x: x[1], reverse=True)
 
     recommendations = []
-    for i in range(number):
-        index = sorted_similar_movies[i][0]
+    count = 0
+    for index, score in similarity_score:
+        if count >= number:
+            break
         movie = df.iloc[index]
         recommendations.append([
             movie['title'],
@@ -48,5 +58,6 @@ def movie_recommendation(movie_name, number=10):
             round(movie['vote_average'],2),
             movie['poster_path']
         ])
+        count += 1
 
     return recommendations

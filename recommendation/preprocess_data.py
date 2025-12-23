@@ -32,7 +32,20 @@ def preprocess_data():
     feature_vectors = vectorizer.fit_transform(combined)
 
     print("Computing similarity matrix...")
-    similarity = cosine_similarity(feature_vectors)
+    # Use float32 to save memory
+    similarity = cosine_similarity(feature_vectors).astype('float32')
+    
+    # Store only top 100 similar movies per movie to save memory
+    print("Optimizing similarity data (keeping top 100 per movie)...")
+    top_k = 100
+    optimized_similarity = []
+    
+    for i in range(len(similarity)):
+        # Get indices of top similar movies
+        sim_scores = similarity[i]
+        top_indices = sim_scores.argsort()[-top_k:][::-1]
+        top_scores = sim_scores[top_indices]
+        optimized_similarity.append((top_indices, top_scores))
 
     # Ensure directory exists
     os.makedirs(os.path.dirname(pkl_path), exist_ok=True)
@@ -40,8 +53,8 @@ def preprocess_data():
     print(f"Saving preprocessed data to {pkl_path}...")
     with open(pkl_path, 'wb') as f:
         pickle.dump({
-            'df': df,
-            'similarity': similarity
+            'df': df[['title', 'genres', 'overview', 'release_date', 'vote_average', 'poster_path']],
+            'similarity': optimized_similarity
         }, f)
 
     print("✓ Preprocessing complete! Data saved successfully.")
