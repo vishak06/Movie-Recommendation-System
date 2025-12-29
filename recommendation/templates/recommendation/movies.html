@@ -19,9 +19,12 @@
                 <div class="p-4 border border-secondary border-5 rounded-4 shadow-lg d-flex flex-column" style="background: #e0e1dd; min-height: 580px;">
 
                     <div class="d-flex flex-wrap justify-content-center gap-3 mb-5">
-                        <form action="{% url 'index' %}" method="POST" class="d-flex flex-wrap gap-3 justify-content-center">
+                        <form action="{% url 'index' %}" method="POST" class="d-flex flex-wrap gap-3 justify-content-center" id="movieForm">
                             {% csrf_token %}
-                            <input class="form-control form-control-lg" type="text" name="title" id="title" placeholder="Enter Movie Title" required>
+                            <div style="position: relative; width: 100%; max-width: 500px;">
+                                <input class="form-control form-control-lg" type="text" name="title" id="title" placeholder="Enter Movie Title" required autocomplete="off">
+                                <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
+                            </div>
                             <div class="d-flex align-items-center gap-2">
                                 <label for="number" class="form-label" style="color: #415a77; font-size: 20px;">Number of Recommendations : </label>
                                 <input type="number" class="form-control form-control-lg" name="number" id="number" value="10" min="1" max="50" style="width: 100px;">
@@ -77,7 +80,7 @@
                         </div>
                     {% else %}
                         <div class="d-flex justify-content-center align-items-center flex-grow-1">
-                            <h1 class="text-center" style="color: #415a77; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 400; letter-spacing: 2px;">MOVIE RECOMMENDATIONS</h1>
+                            <img src="{% static 'recommendation/movie.png' %}" alt="Movie Recommendations" style="max-width: 200px; height: auto;">
                         </div>
                     {% endif %}
 
@@ -85,6 +88,89 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const titleInput = document.getElementById('title');
+        const dropdown = document.getElementById('autocomplete-dropdown');
+        let debounceTimer;
+
+        titleInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const query = this.value.trim();
+
+            if (query.length < 1) {
+                dropdown.innerHTML = '';
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            // Debounce the API call
+            debounceTimer = setTimeout(() => {
+                fetch(`{% url 'autocomplete' %}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySuggestions(data.suggestions);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching suggestions:', error);
+                    });
+            }, 300);
+        });
+
+        function displaySuggestions(suggestions) {
+            if (suggestions.length === 0) {
+                dropdown.innerHTML = '';
+                dropdown.style.display = 'none';
+                titleInput.style.borderBottomLeftRadius = '';
+                titleInput.style.borderBottomRightRadius = '';
+                return;
+            }
+
+            dropdown.innerHTML = suggestions.map(movie => `
+                <div class="autocomplete-item" onclick="selectMovie('${movie.title.replace(/'/g, "\\'")}')">
+                    <img src="https://image.tmdb.org/t/p/w92/${movie.poster_path}" 
+                         alt="${movie.title}"
+                         onerror="this.src='{% static 'recommendation/noposter.jpg' %}'"
+                         class="autocomplete-poster">
+                    <div class="autocomplete-info">
+                        <div class="autocomplete-title">${movie.title}</div>
+                        <div class="autocomplete-year">${movie.release_date || 'N/A'}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            dropdown.style.display = 'block';
+            titleInput.style.borderBottomLeftRadius = '0';
+            titleInput.style.borderBottomRightRadius = '0';
+        }
+
+        function selectMovie(title) {
+            titleInput.value = title;
+            dropdown.innerHTML = '';
+            dropdown.style.display = 'none';
+            titleInput.style.borderBottomLeftRadius = '';
+            titleInput.style.borderBottomRightRadius = '';
+            
+            // Automatically submit the form
+            document.getElementById('movieForm').submit();
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!titleInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+                titleInput.style.borderBottomLeftRadius = '';
+                titleInput.style.borderBottomRightRadius = '';
+            }
+        });
+
+        // Show dropdown again when focusing on input with existing suggestions
+        titleInput.addEventListener('focus', function() {
+            if (dropdown.innerHTML && this.value.trim().length > 0) {
+                dropdown.style.display = 'block';
+            }
+        });
+    </script>
 
 </body>
 </html>

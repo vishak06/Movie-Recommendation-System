@@ -24,6 +24,28 @@ with open(preprocessed_path, 'rb') as f:
     df = data['df']
     similarity = data['similarity']
 
+def get_movie_suggestions(query, limit=5):
+    """
+    Get movie suggestions based on user query for autocomplete
+    Returns a list of dictionaries with title and poster_path
+    """
+    if not query or len(query) < 1:
+        return []
+    
+    list_of_titles = [title.lower() for title in df['title'].tolist()]
+    find_close_match = difflib.get_close_matches(query.lower(), list_of_titles, n=limit, cutoff=0.3)
+    
+    suggestions = []
+    for match in find_close_match:
+        movie = df[df['title'].str.lower() == match].iloc[0]
+        suggestions.append({
+            'title': movie['title'],
+            'poster_path': movie['poster_path'],
+            'release_date': movie['release_date']
+        })
+    
+    return suggestions
+
 def movie_recommendation(movie_name, number=10):
     list_of_titles = [title.lower() for title in df['title'].tolist()]
     find_close_match = difflib.get_close_matches(movie_name, list_of_titles, n=10, cutoff=0.3)
