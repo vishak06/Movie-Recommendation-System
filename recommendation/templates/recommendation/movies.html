@@ -22,9 +22,8 @@
                     style="background: #e0e1dd; min-height: 580px;">
 
                     <div class="d-flex flex-wrap justify-content-center gap-3 mb-5">
-                        <form action="{% url 'index' %}" method="POST"
+                        <form action="{% url 'index' %}" method="GET"
                             class="d-flex flex-wrap gap-3 justify-content-center" id="movieForm">
-                            {% csrf_token %}
                             <div style="position: relative; width: 100%; max-width: 500px;">
                                 <input class="form-control form-control-lg" type="text" name="title" id="title"
                                     placeholder="Enter Movie Title" required autocomplete="off">
@@ -110,6 +109,11 @@
     </div>
 
     <script>
+        // Clear URL parameters to prevent search on reload
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.pathname);
+        }
+
         const titleInput = document.getElementById('title');
         const dropdown = document.getElementById('autocomplete-dropdown');
         let debounceTimer;
