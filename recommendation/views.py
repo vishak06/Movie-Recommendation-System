@@ -7,6 +7,7 @@ def index(request):
     recommendation = []
     # Check for title in GET or POST
     title = request.GET.get('title') or request.POST.get('title')
+    movie_index = request.GET.get('movie_index') or request.POST.get('movie_index')
     
     if title:
         number = request.GET.get('number') or request.POST.get('number')
@@ -16,8 +17,9 @@ def index(request):
             number = int(number)
         except (ValueError, TypeError):
             number = 10
-            
-        recommendation = movie_recommendation(title, number)
+        
+        # Pass movie_index if provided
+        recommendation = movie_recommendation(title, number, movie_index)
 
     return render(request, 'recommendation/movies.html', {
         'recommendation' : recommendation

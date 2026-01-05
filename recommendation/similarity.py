@@ -74,42 +74,55 @@ def get_movie_suggestions(query, limit=5):
                 'title': movie['title'],  # Display title without year
                 'full_title': full_title,  # Full title with year for matching
                 'poster_path': movie['poster_path'],
-                'release_date': formatted_date
+                'release_date': formatted_date,
+                'index': int(idx)  # Include dataframe index
             })
     
     return suggestions
 
-def movie_recommendation(movie_name, number=10):
-    # Check if movie_name includes year in format "Title (Year)"
-    import re
-    match = re.match(r'^(.+?)\s*\((\d{4})\)$', movie_name)
+def movie_recommendation(movie_name, number=10, movie_index=None):
+    # If movie_index is provided, use it directly
+    if movie_index is not None:
+        try:
+            movie_index = int(movie_index)
+            # Verify the index exists in the dataframe
+            if movie_index not in df.index:
+                movie_index = None
+        except (ValueError, TypeError):
+            movie_index = None
     
-    if match:
-        # Extract title and year
-        title_only = match.group(1).strip()
-        year = match.group(2)
+    # If no valid index provided, search by movie name
+    if movie_index is None:
+        # Check if movie_name includes year in format "Title (Year)"
+        import re
+        match = re.match(r'^(.+?)\s*\((\d{4})\)$', movie_name)
         
-        # Find movie matching both title and year
-        matching_movies = df[
-            (df['title'].str.lower() == title_only.lower()) & 
-            (df['release_date'].str.startswith(year))
-        ]
-        
-        if len(matching_movies) > 0:
-            movie_index = matching_movies.index[0]
+        if match:
+            # Extract title and year
+            title_only = match.group(1).strip()
+            year = match.group(2)
+            
+            # Find movie matching both title and year
+            matching_movies = df[
+                (df['title'].str.lower() == title_only.lower()) & 
+                (df['release_date'].str.startswith(year))
+            ]
+            
+            if len(matching_movies) > 0:
+                movie_index = matching_movies.index[0]
+            else:
+                # Fallback to just title match
+                movie_index = df[df['title'].str.lower() == title_only.lower()].index[0]
         else:
-            # Fallback to just title match
-            movie_index = df[df['title'].str.lower() == title_only.lower()].index[0]
-    else:
-        # Original logic for title-only search
-        list_of_titles = [title.lower() for title in df['title'].tolist()]
-        find_close_match = difflib.get_close_matches(movie_name.lower(), list_of_titles, n=10, cutoff=0.3)
+            # Original logic for title-only search
+            list_of_titles = [title.lower() for title in df['title'].tolist()]
+            find_close_match = difflib.get_close_matches(movie_name.lower(), list_of_titles, n=10, cutoff=0.3)
 
-        if not find_close_match:
-            return {}
-        
-        close_match = find_close_match[0]
-        movie_index = df[df['title'].str.lower() == close_match].index[0]
+            if not find_close_match:
+                return {}
+            
+            close_match = find_close_match[0]
+            movie_index = df[df['title'].str.lower() == close_match].index[0]
     
     # Get precomputed similar movies
     if isinstance(similarity, list):
@@ -150,7 +163,8 @@ def movie_recommendation(movie_name, number=10):
             movie['overview'],
             formatted_date,
             rating,
-            movie['poster_path']
+            movie['poster_path'],
+            int(index)  # Add the dataframe index
         ])
         count += 1
 

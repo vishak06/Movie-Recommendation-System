@@ -24,7 +24,7 @@
                     <div class="d-flex flex-wrap justify-content-center gap-3 mb-5">
                         <form action="{% url 'index' %}" method="GET"
                             class="d-flex flex-wrap gap-3 justify-content-center" id="movieForm">
-                            <input type="hidden" name="movie_id" id="movie_id">
+                            <input type="hidden" name="movie_index" id="movie_index">
                             <div style="position: relative; width: 100%; max-width: 500px;">
                                 <input class="form-control form-control-lg" type="text" name="title" id="title"
                                     placeholder="Enter Movie Title" required autocomplete="off">
@@ -152,7 +152,7 @@
             }
 
             dropdown.innerHTML = suggestions.map(movie => `
-                <div class="autocomplete-item" onclick="selectMovie('${movie.full_title.replace(/'/g, "\\'")}')">
+                <div class="autocomplete-item" onclick="selectMovie('${movie.full_title.replace(/'/g, "\\'")}', ${movie.index})">
                     <img src="https://image.tmdb.org/t/p/w92/${movie.poster_path}" 
                          alt="${movie.title}"
                          onerror="this.src='{% static 'recommendation/noposter.jpg' %}'"
@@ -169,8 +169,9 @@
             titleInput.style.borderBottomRightRadius = '0';
         }
 
-        function selectMovie(title) {
+        function selectMovie(title, movieIndex) {
             titleInput.value = title;
+            document.getElementById('movie_index').value = movieIndex;
             dropdown.innerHTML = '';
             dropdown.style.display = 'none';
             titleInput.style.borderBottomLeftRadius = '';
@@ -198,7 +199,7 @@
 
         function recommendMovie(title, movieIndex) {
             titleInput.value = title;
-            document.getElementById('movie_id').value = movieIndex;
+            document.getElementById('movie_index').value = movieIndex;
             document.getElementById('movieForm').submit();
         }
     </script>
