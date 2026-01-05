@@ -32,29 +32,71 @@ def get_movie_suggestions(query, limit=5):
     if not query or len(query) < 1:
         return []
     
-    list_of_titles = [title.lower() for title in df['title'].tolist()]
-    find_close_match = difflib.get_close_matches(query.lower(), list_of_titles, n=limit, cutoff=0.3)
+    # Filter movies where title contains the query (case insensitive)
+    query_lower = query.lower()
+    matching_movies = df[df['title'].str.lower().str.contains(query_lower, na=False, regex=False)]
     
+    # If no direct matches, use fuzzy matching
+    if len(matching_movies) == 0:
+        list_of_titles = [title.lower() for title in df['title'].tolist()]
+        find_close_match = difflib.get_close_matches(query_lower, list_of_titles, n=limit*3, cutoff=0.3)
+        
+        if find_close_match:
+            matching_movies = df[df['title'].str.lower().isin(find_close_match)]
+    
+    # Get unique movies, limit results
     suggestions = []
-    for match in find_close_match:
-        movie = df[df['title'].str.lower() == match].iloc[0]
-        suggestions.append({
-            'title': movie['title'],
-            'poster_path': movie['poster_path'],
-            'release_date': movie['release_date']
-        })
+    seen = set()
+    
+    for _, movie in matching_movies.iterrows():
+        # Create a unique key based on title and release date
+        unique_key = (movie['title'].lower(), str(movie['release_date']))
+        
+        if unique_key not in seen and len(suggestions) < limit:
+            seen.add(unique_key)
+            # Extract year from release_date for display
+            year = movie['release_date'].split('-')[0] if movie['release_date'] and '-' in str(movie['release_date']) else ''
+            display_title = f"{movie['title']} ({year})" if year else movie['title']
+            
+            suggestions.append({
+                'title': display_title,
+                'poster_path': movie['poster_path'],
+                'release_date': movie['release_date']
+            })
     
     return suggestions
 
 def movie_recommendation(movie_name, number=10):
-    list_of_titles = [title.lower() for title in df['title'].tolist()]
-    find_close_match = difflib.get_close_matches(movie_name, list_of_titles, n=10, cutoff=0.3)
-
-    if not find_close_match:
-        return {}
+    # Check if movie_name includes year in format "Title (Year)"
+    import re
+    match = re.match(r'^(.+?)\s*\((\d{4})\)$', movie_name)
     
-    close_match = find_close_match[0]
-    movie_index = df[df['title'].str.lower() == close_match].index[0]
+    if match:
+        # Extract title and year
+        title_only = match.group(1).strip()
+        year = match.group(2)
+        
+        # Find movie matching both title and year
+        matching_movies = df[
+            (df['title'].str.lower() == title_only.lower()) & 
+            (df['release_date'].str.startswith(year))
+        ]
+        
+        if len(matching_movies) > 0:
+            movie_index = matching_movies.index[0]
+        else:
+            # Fallback to just title match
+            movie_index = df[df['title'].str.lower() == title_only.lower()].index[0]
+    else:
+        # Original logic for title-only search
+        list_of_titles = [title.lower() for title in df['title'].tolist()]
+        find_close_match = difflib.get_close_matches(movie_name.lower(), list_of_titles, n=10, cutoff=0.3)
+
+        if not find_close_match:
+            return {}
+        
+        close_match = find_close_match[0]
+        movie_index = df[df['title'].str.lower() == close_match].index[0]
     
     # Get precomputed similar movies
     if isinstance(similarity, list):
@@ -72,12 +114,18 @@ def movie_recommendation(movie_name, number=10):
         if count >= number:
             break
         movie = df.iloc[index]
+        # Convert imdb_rating to float, handle empty strings
+        try:
+            rating = round(float(movie['imdb_rating']), 2) if movie['imdb_rating'] else 0.0
+        except (ValueError, TypeError):
+            rating = 0.0
+        
         recommendations.append([
             movie['title'],
             movie['genres'],
             movie['overview'],
             movie['release_date'],
-            round(movie['vote_average'],2),
+            rating,
             movie['poster_path']
         ])
         count += 1

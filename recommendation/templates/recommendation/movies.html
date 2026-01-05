@@ -24,6 +24,7 @@
                     <div class="d-flex flex-wrap justify-content-center gap-3 mb-5">
                         <form action="{% url 'index' %}" method="GET"
                             class="d-flex flex-wrap gap-3 justify-content-center" id="movieForm">
+                            <input type="hidden" name="movie_id" id="movie_id">
                             <div style="position: relative; width: 100%; max-width: 500px;">
                                 <input class="form-control form-control-lg" type="text" name="title" id="title"
                                     placeholder="Enter Movie Title" required autocomplete="off">
@@ -47,7 +48,7 @@
 
                         <div class="card p-3 text-white shadow rounded-4 border border-5"
                             style="background: #415a77; cursor: pointer;"
-                            onclick="recommendMovie('{{ movie.0|escapejs }}')">
+                            onclick="recommendMovie('{{ movie.0|escapejs }}', {{ movie.6 }})">
                             <div
                                 class="d-flex flex-lg-row flex-column flex-md-column align-items-center justify-content-between gap-3">
 
@@ -151,7 +152,7 @@
             }
 
             dropdown.innerHTML = suggestions.map(movie => `
-                <div class="autocomplete-item" onclick="selectMovie('${movie.title.replace(/'/g, "\\'")}')">
+                <div class="autocomplete-item" onclick="selectMovie('${movie.title.replace(/'/g, "\\'")}', ${movie.index})">
                     <img src="https://image.tmdb.org/t/p/w92/${movie.poster_path}" 
                          alt="${movie.title}"
                          onerror="this.src='{% static 'recommendation/noposter.jpg' %}'"
@@ -168,8 +169,9 @@
             titleInput.style.borderBottomRightRadius = '0';
         }
 
-        function selectMovie(title) {
+        function selectMovie(title, movieIndex) {
             titleInput.value = title;
+            document.getElementById('movie_id').value = movieIndex;
             dropdown.innerHTML = '';
             dropdown.style.display = 'none';
             titleInput.style.borderBottomLeftRadius = '';
@@ -195,8 +197,9 @@
             }
         });
 
-        function recommendMovie(title) {
+        function recommendMovie(title, movieIndex) {
             titleInput.value = title;
+            document.getElementById('movie_id').value = movieIndex;
             document.getElementById('movieForm').submit();
         }
     </script>
