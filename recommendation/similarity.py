@@ -59,11 +59,22 @@ def get_movie_suggestions(query, limit=5):
             # Create full title with year for internal use
             full_title = f"{movie['title']} ({year})" if year else movie['title']
             
+            # Format release_date to dd-mm-yyyy
+            formatted_date = ''
+            if movie['release_date'] and '-' in str(movie['release_date']):
+                parts = movie['release_date'].split('-')
+                if len(parts) == 3:
+                    formatted_date = f"{parts[2]}-{parts[1]}-{parts[0]}"
+                else:
+                    formatted_date = movie['release_date']
+            else:
+                formatted_date = movie['release_date']
+            
             suggestions.append({
                 'title': movie['title'],  # Display title without year
                 'full_title': full_title,  # Full title with year for matching
                 'poster_path': movie['poster_path'],
-                'release_date': movie['release_date']
+                'release_date': formatted_date
             })
     
     return suggestions
@@ -122,11 +133,22 @@ def movie_recommendation(movie_name, number=10):
         except (ValueError, TypeError):
             rating = 0.0
         
+        # Format release_date to dd-mm-yyyy
+        formatted_date = ''
+        if movie['release_date'] and '-' in str(movie['release_date']):
+            parts = str(movie['release_date']).split('-')
+            if len(parts) == 3:
+                formatted_date = f"{parts[2]}-{parts[1]}-{parts[0]}"
+            else:
+                formatted_date = movie['release_date']
+        else:
+            formatted_date = movie['release_date']
+        
         recommendations.append([
             movie['title'],
             movie['genres'],
             movie['overview'],
-            movie['release_date'],
+            formatted_date,
             rating,
             movie['poster_path']
         ])
