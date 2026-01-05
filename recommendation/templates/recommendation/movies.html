@@ -152,7 +152,7 @@
             }
 
             dropdown.innerHTML = suggestions.map(movie => `
-                <div class="autocomplete-item" onclick="selectMovie('${movie.title.replace(/'/g, "\\'")}', ${movie.index})">
+                <div class="autocomplete-item" onclick="selectMovie('${movie.full_title.replace(/'/g, "\\'")}')">
                     <img src="https://image.tmdb.org/t/p/w92/${movie.poster_path}" 
                          alt="${movie.title}"
                          onerror="this.src='{% static 'recommendation/noposter.jpg' %}'"
@@ -169,9 +169,8 @@
             titleInput.style.borderBottomRightRadius = '0';
         }
 
-        function selectMovie(title, movieIndex) {
+        function selectMovie(title) {
             titleInput.value = title;
-            document.getElementById('movie_id').value = movieIndex;
             dropdown.innerHTML = '';
             dropdown.style.display = 'none';
             titleInput.style.borderBottomLeftRadius = '';

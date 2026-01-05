@@ -48,18 +48,20 @@ def get_movie_suggestions(query, limit=5):
     suggestions = []
     seen = set()
     
-    for _, movie in matching_movies.iterrows():
+    for idx, movie in matching_movies.iterrows():
         # Create a unique key based on title and release date
         unique_key = (movie['title'].lower(), str(movie['release_date']))
         
         if unique_key not in seen and len(suggestions) < limit:
             seen.add(unique_key)
-            # Extract year from release_date for display
+            # Extract year from release_date
             year = movie['release_date'].split('-')[0] if movie['release_date'] and '-' in str(movie['release_date']) else ''
-            display_title = f"{movie['title']} ({year})" if year else movie['title']
+            # Create full title with year for internal use
+            full_title = f"{movie['title']} ({year})" if year else movie['title']
             
             suggestions.append({
-                'title': display_title,
+                'title': movie['title'],  # Display title without year
+                'full_title': full_title,  # Full title with year for matching
                 'poster_path': movie['poster_path'],
                 'release_date': movie['release_date']
             })

@@ -29,7 +29,7 @@ def preprocess_data():
     combined = df['genres'] + ' ' + df['overview'] + ' ' + df['original_language'] + ' ' + df['cast'] + ' ' + df['director']
 
     print("Vectorizing features (this may take a while)...")
-    vectorizer = TfidfVectorizer(max_features=5000)  # Limit features to reduce memory
+    vectorizer = TfidfVectorizer(min_df=2, max_df=0.8)  # Limit features to reduce memory
     feature_vectors = vectorizer.fit_transform(combined)
 
     print("Computing similarity in batches to save memory...")

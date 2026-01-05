@@ -28,5 +28,5 @@ def autocomplete(request):
     API endpoint for movie autocomplete suggestions
     """
     query = request.GET.get('q', '')
-    suggestions = get_movie_suggestions(query, limit=10)
+    suggestions = get_movie_suggestions(query, limit=50)
     return JsonResponse({'suggestions': suggestions})
